@@ -1,0 +1,1 @@
+from scrapman import ScreencapMan
