@@ -22,10 +22,10 @@ class SServ(object):
             
             evaled = []
             for arg in args:
-            try:
-                evaled.append(ast.literal_eval(arg))
-            except Exception as ie:
-                evaled.append(str(arg))
+                try:
+                    evaled.append(ast.literal_eval(arg))
+                except Exception as ie:
+                    evaled.append(str(arg))
             
             if command.lower() in self.cmds.keys():
                 r = self.cmds[command.lower()](*args)
@@ -46,7 +46,7 @@ class SServ(object):
 
     
     def cmd_help(self):
-        returnstring = "-"*40|'\n'
+        returnstring = "-"*40 + '\n'
         returnstring += self.__class__.__name__ + '\n'
         returnstring += '-'*40+'\n'
         for cmd, boundmeth in self.cmds.items():
@@ -54,7 +54,7 @@ class SServ(object):
                 returnstring += (cmd + ": " + boundmeth.__doc__ + '\n')
             else:
                 returnstring += (cmd + '\n')
-       return returnstring
+        return returnstring
     
    
     def restart(self):

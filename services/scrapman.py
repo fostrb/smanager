@@ -3,7 +3,7 @@ import time
 import subprocess
 import socket
 import argparse
-import ConfigParser
+
 from sserv import SServ
 
 import os

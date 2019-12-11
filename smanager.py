@@ -1,12 +1,15 @@
 import sys
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
+from twisted.python import log
 from twisted.internet import reactor
+
 
 from sserv import SServ
 import services
 
-LOGFILE = "/var/log/smanager.log"
+LOGFILE = "/tmp/smanager.log"
+
 
 class SMProtocol(LineReceiver):
     """
@@ -16,24 +19,32 @@ class SMProtocol(LineReceiver):
 
     def __init__(self, service_manager):
         self.service_manager = service_manager
-    
+        print(self.service_manager)
+
     def dataReceived(self, data):
-        self.lineRecieved(data)
-    
-    def connectionMade("connected: " + str(self.transport.client[0]))
-    self.sendLine("*" * 50)
-    self.sendLine("Service Manager")
-    self.sendLine("*" * 50)
-    self.sendLine("Available Services:")
-    for name in self.service_manager.services.keys():
-        self.sendLine('-'+name)
-    self.sendLine("-"*50)
+        self.lineReceived(data)
+
+    def send_string(self, data):
+        self.sendLine(bytes(data, 'utf-8'))
+        #self.sendLine(data)
+
+
+    def connectionMade(self):
+        print("connected: " + str(self.transport.client[0]))
+        self.send_string("*" * 50)
+        self.send_string("Service Manager")
+        self.send_string("*" * 50)
+        self.send_string("Available Services:")
+        for name in self.service_manager.services.keys():
+            self.send_string('-' + name)
+        self.send_string("-" * 50)
     
     def connectionLost(self, reason=None):
         print("Disconnected: " + str(self.transport.client[0]))
-        self.sevice_manager.handle_disconnect(self.transport.client[0])
+        self.sevice_manager.handle_disconnect(str(self.transport.client[0]))
     
     def lineReceived(self, line):
+        line = line.decode('utf-8')
         arg0 = line.strip().split(' ')[0]
         r = ''
         if arg0.lower() in self.service_manager.services.keys():
@@ -41,8 +52,8 @@ class SMProtocol(LineReceiver):
             r = self.service_manager.services[arg0.lower()].parse_command(line)
         else:
             r = self.service_manager.parse_command(line)
-        self.sendLine(str(r))
-        self.sendLine("-*50)
+        self.send_string(str(r))
+        self.send_string("-" * 50)
 
 
 class SMFactory(Factory):
@@ -78,10 +89,10 @@ class ServiceManager(SServ):
         """display help message"""
         returnstring = "-"*50+'\n'
         returnstring += self.__class__.__name__+'\n'
-        returnstring += "-" * 50 + \n'
+        returnstring += "-" * 50 + '\n'
         if target:
-        if target.lower() in self.services.keys():
-            return self.services[target.lower()].cmd_help()
+            if target.lower() in self.services.keys():
+                return self.services[target.lower()].cmd_help()
         
         returnstring += "Services:\n"
         
@@ -98,8 +109,8 @@ class ServiceManager(SServ):
                 returnstring += ('\t'+cmd+'\n')
         return returnstring
     
-    def cmd_restart(self, target=None)
-        """restart services"
+    def cmd_restart(self, target=None):
+        """restart services"""
         for k, v in self.services.items():
             v.cleanup()
         for k, v in services.__dict__.items():
@@ -117,4 +128,3 @@ class ServiceManager(SServ):
 if __name__ == '__main__':
     reactor.listenTCP(10000, SMFactory())
     reactor.run()
-                    

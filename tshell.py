@@ -10,16 +10,19 @@ host='localhost'
 port = 10000
 delimiter = '\n'
 
+
 class ConsoleClient(protocol.Protocol):
     def dataReceived(self, data):
-        stdout.write(data)
+        stdout.write(data.decode('utf-8'))
         stdout.flush()
-  
+
     def sendData(self, data):
-        self.transport.write(data + delimiter)
+        self.transport.write(bytes(data, 'utf-8'))
+        #print("HERE")
+        #self.transport.write(data)
 
 
-class ConsoleClientFactor(protocol.ClientFactory):
+class ConsoleClientFactory(protocol.ClientFactory):
     def startedConnecting(self, connector):
         print("Connecting...")
     
@@ -36,10 +39,13 @@ class ConsoleClientFactor(protocol.ClientFactory):
 class Console(basic.LineReceiver):
     factory = None
     delimiter = delimiter
-    
+
     def __init__(self, factory):
         self.factory = factory
-        
+
+    def dataReceived(self, data):
+        self.lineReceived(data.decode('utf-8'))
+
     def lineReceived(self, line):
         if line == 'quit':
             self.quit()
@@ -48,6 +54,8 @@ class Console(basic.LineReceiver):
 
     def quit(self):
         reactor.stop()
+        exit()
+
 
 def main():
     factory = ConsoleClientFactory()
@@ -58,4 +66,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
