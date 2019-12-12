@@ -5,6 +5,7 @@ from twisted.python import log
 from twisted.internet import reactor
 
 
+
 from sserv import SServ
 import services
 
@@ -70,7 +71,7 @@ class ServiceManager(SServ):
     """
     def __init__(self):
         super(ServiceManager, self).__init__()
-        log.startLogging(open(LOGFILE, "a+"))
+        #log.startLogging(open(LOGFILE, "a+"))
         self.services = {}
         self.init_services()
         
@@ -92,9 +93,21 @@ class ServiceManager(SServ):
         if target:
             if target.lower() in self.services.keys():
                 return self.services[target.lower()].cmd_help()
-        
+
+        # toplevel commands
+        returnstring += 'Toplevel exposed commands:\n'
+        for s, serv in self.services.items():
+            #for cmd, boundmeth in serv.toplevel_cmds.items():
+            for cmd in serv.toplv_cmds:
+                returnstring += cmd
+                boundmeth = serv.cmds[cmd]
+                if boundmeth.__doc__ is not None:
+                    returnstring += ': ' + boundmeth.__doc__.strip() + '\n'
+                else:
+                    returnstring += '\n'
+        returnstring += '-'*50 + '\n'
+
         returnstring += "Services:\n"
-        
         for s, serv in self.services.items():
             if serv.__doc__ is not None:
                 returnstring += '\t' + s + ': ' + serv.__doc__.strip()+'\n'

@@ -5,9 +5,9 @@ import ast
 class SServ(object):
     def __init__(self):
         self.cmds = {}
+        self.toplv_cmds = []
         self.init_cmds()
 
-    
     def parse_command(self, cmd_string):
         """
         accepts a string, tokenizes, and matches to a command, passing args.
@@ -40,12 +40,21 @@ class SServ(object):
     def init_cmds(self):
         self.cmds = {}
         for method in dir(self):
-            if method.startswith("cmd_"):
+            if method.startswith("toplevel_cmd"):
+                print(method)
+                command = method[13:]
+                m = getattr(self, method)
+                self.cmds[command] = m
+                self.toplv_cmds.append(command)
+            elif method.startswith("cmd_"):
                 command = method[4:]
                 m = getattr(self, method)
                 self.cmds[command] = m
 
     def cmd_help(self):
+        '''
+        Print the help dialogue for this service
+        '''
         returnstring = "-"*40 + '\n'
         returnstring += self.__class__.__name__ + '\n'
         returnstring += '-'*40+'\n'

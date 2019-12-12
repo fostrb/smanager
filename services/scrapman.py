@@ -14,21 +14,40 @@ class ScreencapMan(SServ):
         print("ScreencapMan Init")
 
     def capture_single_target(self, target):
-        if target in targets.keys():
-            for display in targets[target]:
-                os.system('ssh ' + user + '@' + target + ' "xwd -out screenshot.xwd -root -display "' + display)
+        try:
+            if target in targets.keys():
+                for display in targets[target]:
+                    os.system('ssh ' + user + '@' + target + ' "xwd -out screenshot.xwd -root -display "' + display)
+            else:
+                return "Target not in list"
+        except:
+            return "Capture failure"
+        return "Capture success"
 
-    # exposed commands ---
-    def cmd_capture_at(self, freq):
+    # exposed commands --------------------------------------------------------|
+    #                                                                          |
+    def toplevel_cmd_capture_at(self, freq):
+        '''
+        Change the heartbeat of the screen capture service
+        '''
         self.heartbeat = int(freq)
-        print("Heartbeat: " + str(self.heartbeat))
+        return "Heartbeat: " + str(self.heartbeat)
     # exposed  -------|
 
-    def cmd_captest(self):
-        self.capture_single_target('192.168.0.175')
+    def toplevel_cmd_captest(self):
+        '''
+        Take one screenshot the test target
+        '''
+        return self.capture_single_target('192.168.0.175')
 
     def cmd_get_heartbeat(self):
+        '''
+        Get the current heartbeat of the screencap service
+            Reported as an integer, 1/Hz (1/60s = '60')
+        '''
         return self.heartbeat
+    #                                                                          |
+    # exposed commands --------------------------------------------------------|
 
     def cleanup(self):
         pass
