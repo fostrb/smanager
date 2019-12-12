@@ -1,6 +1,7 @@
 import readline
 import ast
 
+
 class SServ(object):
     def __init__(self):
         self.cmds = {}
@@ -19,14 +20,14 @@ class SServ(object):
             args = cmd_string.strip().split(' ')
             command = args[0]
             args.pop(0)
-            
+
             evaled = []
             for arg in args:
                 try:
                     evaled.append(ast.literal_eval(arg))
                 except Exception as ie:
                     evaled.append(str(arg))
-            
+
             if command.lower() in self.cmds.keys():
                 r = self.cmds[command.lower()](*args)
                 return r
@@ -34,8 +35,8 @@ class SServ(object):
                 raise KeyError("Command \"" + cmd_string.strip() + "\" not found.")
         except Exception as e:
             print(e)
-            return e        
-    
+            return e
+
     def init_cmds(self):
         self.cmds = {}
         for method in dir(self):
@@ -44,7 +45,6 @@ class SServ(object):
                 m = getattr(self, method)
                 self.cmds[command] = m
 
-    
     def cmd_help(self):
         returnstring = "-"*40 + '\n'
         returnstring += self.__class__.__name__ + '\n'
@@ -55,8 +55,7 @@ class SServ(object):
             else:
                 returnstring += (cmd + '\n')
         return returnstring
-    
-   
+
     def restart(self):
         """
         Overload method to return a new instance of self with contextual data of running stuff
@@ -65,6 +64,6 @@ class SServ(object):
 
     def cleanup(self):
         pass
-        
+
     def disconnect_notification(self, address=None):
         pass

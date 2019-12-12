@@ -28,7 +28,6 @@ class SMProtocol(LineReceiver):
         self.sendLine(bytes(data, 'utf-8'))
         #self.sendLine(data)
 
-
     def connectionMade(self):
         print("connected: " + str(self.transport.client[0]))
         self.send_string("*" * 50)

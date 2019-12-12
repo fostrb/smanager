@@ -18,8 +18,6 @@ class ConsoleClient(protocol.Protocol):
 
     def sendData(self, data):
         self.transport.write(bytes(data, 'utf-8'))
-        #print("HERE")
-        #self.transport.write(data)
 
 
 class ConsoleClientFactory(protocol.ClientFactory):
