@@ -3,7 +3,6 @@ from twisted.protocols import basic
 from sys import stdout
 
 import argparse
-
 import readline
 
 host='localhost'
@@ -23,7 +22,7 @@ class ConsoleClient(protocol.Protocol):
 class ConsoleClientFactory(protocol.ClientFactory):
     def startedConnecting(self, connector):
         print("Connecting...")
-    
+
     def buildProtocol(self, addr):
         print("Connected")
         self.client = ConsoleClient()

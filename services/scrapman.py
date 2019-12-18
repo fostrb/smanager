@@ -17,7 +17,9 @@ class ScreencapMan(SServ):
         try:
             if target in targets.keys():
                 for display in targets[target]:
-                    os.system('ssh ' + user + '@' + target + ' "xwd -out screenshot.xwd -root -display "' + display)
+                    ret = os.system('ssh ' + user + '@' + target + ' "xwd -out screenshot.xwd -root -display "' + display)
+                    if not ret == 0:
+                        return "FAILURE"
             else:
                 return "Target not in list"
         except:

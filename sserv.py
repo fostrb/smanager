@@ -32,7 +32,7 @@ class SServ(object):
                 r = self.cmds[command.lower()](*args)
                 return r
             else:
-                raise KeyError("Command \"" + cmd_string.strip() + "\" not found.")
+                raise KeyError("Command \"" + command + "\" not found.")
         except Exception as e:
             print(e)
             return e
@@ -41,7 +41,6 @@ class SServ(object):
         self.cmds = {}
         for method in dir(self):
             if method.startswith("toplevel_cmd"):
-                print(method)
                 command = method[13:]
                 m = getattr(self, method)
                 self.cmds[command] = m

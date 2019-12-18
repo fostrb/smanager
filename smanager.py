@@ -4,8 +4,6 @@ from twisted.protocols.basic import LineReceiver
 from twisted.python import log
 from twisted.internet import reactor
 
-
-
 from sserv import SServ
 import services
 
@@ -14,13 +12,12 @@ LOGFILE = "/tmp/smanager.log"
 
 class SMProtocol(LineReceiver):
     """
-    Holds context for each servicemanager selection.
+    Holds context for each servicemanager session
     For instance ,if a user was accessing servicemanager via a shell, this will hold the state of which service they are addressing currently.
     """
 
     def __init__(self, service_manager):
         self.service_manager = service_manager
-        print(self.service_manager)
 
     def dataReceived(self, data):
         self.lineReceived(data)
@@ -41,8 +38,7 @@ class SMProtocol(LineReceiver):
     
     def connectionLost(self, reason=None):
         print("Disconnected: " + str(self.transport.client[0]))
-        self.sevice_manager.handle_disconnect(str(self.transport.client[0]))
-    
+
     def lineReceived(self, line):
         line = line.decode('utf-8')
         arg0 = line.strip().split(' ')[0]
@@ -74,12 +70,20 @@ class ServiceManager(SServ):
         #log.startLogging(open(LOGFILE, "a+"))
         self.services = {}
         self.init_services()
-        
+
     def init_services(self):
         for k, v in services.__dict__.items():
             if isinstance(v, type):
                 if issubclass(v, SServ):
                     self.services[v.__name__.lower()] = v()
+
+        # Raising level of service toplv_cmds to Smanager.
+        for sname, service in self.services.items():
+            for cmd in service.toplv_cmds:
+                if cmd in self.cmds.keys():
+                    print("Command name collision: \'" + cmd+"\'")
+                else:
+                    self.cmds[cmd]= service.cmds[cmd]
 
     def handle_disconnect(self, address):
         for k, v in self.services.items():
@@ -116,7 +120,7 @@ class ServiceManager(SServ):
         returnstring += "Commands:\n"
         for cmd, boundmeth in self.cmds.items():
             if boundmeth.__doc__ is not None:
-                returnstring += ('\t' + cmd + ": " + boundmeth.__doc__ + '\n')
+                returnstring += ('\t' + cmd + ": " + boundmeth.__doc__.strip() + '\n')
             else:
                 returnstring += ('\t'+cmd+'\n')
         return returnstring
