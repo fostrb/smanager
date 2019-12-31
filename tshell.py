@@ -5,7 +5,7 @@ from sys import stdout
 import argparse
 import readline
 
-host='localhost'
+host = 'localhost'
 port = 10000
 delimiter = '\n'
 

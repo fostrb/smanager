@@ -101,9 +101,8 @@ class ServiceManager(SServ):
         # toplevel commands
         returnstring += 'Toplevel exposed commands:\n'
         for s, serv in self.services.items():
-            #for cmd, boundmeth in serv.toplevel_cmds.items():
             for cmd in serv.toplv_cmds:
-                returnstring += cmd
+                returnstring += '\t'+cmd
                 boundmeth = serv.cmds[cmd]
                 if boundmeth.__doc__ is not None:
                     returnstring += ': ' + boundmeth.__doc__.strip() + '\n'

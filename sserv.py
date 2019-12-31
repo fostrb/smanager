@@ -9,8 +9,7 @@ class SServ(object):
         self.init_cmds()
 
     def parse_command(self, cmd_string):
-        """
-        accepts a string, tokenizes, and matches to a command, passing args.
+        """Accepts a string, tokenizes, and matches to a command, passing args.
         
         :param cmd_string: Command received as a string.
         """
@@ -51,9 +50,7 @@ class SServ(object):
                 self.cmds[command] = m
 
     def cmd_help(self):
-        '''
-        Print the help dialogue for this service
-        '''
+        """Print the help dialogue for this service"""
         returnstring = "-"*40 + '\n'
         returnstring += self.__class__.__name__ + '\n'
         returnstring += '-'*40+'\n'
@@ -65,9 +62,7 @@ class SServ(object):
         return returnstring
 
     def restart(self):
-        """
-        Overload method to return a new instance of self with contextual data of running stuff
-        """
+        """Overload method to return a new instance of self with contextual data of running stuff"""
         return None
 
     def cleanup(self):
