@@ -21,7 +21,7 @@ class ConsoleClient(protocol.Protocol):
 
 class ConsoleClientFactory(protocol.ClientFactory):
     def startedConnecting(self, connector):
-        print("Connecting...")
+        print("Connecting to " + str(host) + ':' + str(port) + '...')
 
     def buildProtocol(self, addr):
         print("Connected")

@@ -122,10 +122,11 @@ class SManager(SService):
                 returnstring += '\t' + s + '\n'
         returnstring += "Commands:\n"
         for cmd, boundmeth in self.cmds.items():
-            if boundmeth.__doc__ is not None:
-                returnstring += ('\t' + cmd + ": " + boundmeth.__doc__.strip() + '\n')
-            else:
-                returnstring += ('\t'+cmd+'\n')
+            if not boundmeth.__name__.startswith('toplevel_cmd_'):
+                if boundmeth.__doc__ is not None:
+                    returnstring += ('\t' + cmd + ": " + boundmeth.__doc__.strip() + '\n')
+                else:
+                    returnstring += ('\t'+cmd+'\n')
         return returnstring
     
     def cmd_restart(self):
