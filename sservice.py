@@ -2,7 +2,7 @@ import readline
 import ast
 
 
-class SServ(object):
+class SService(object):
     def __init__(self):
         self.cmds = {}
         self.toplv_cmds = []
@@ -10,7 +10,7 @@ class SServ(object):
 
     def parse_command(self, cmd_string):
         """Accepts a string, tokenizes, and matches to a command, passing args.
-        
+
         :param cmd_string: Command received as a string.
         """
         if cmd_string.strip() is "":

@@ -1,4 +1,4 @@
-from sserv import SServ
+from sservice import SService
 import threading
 import json
 import time
@@ -6,22 +6,12 @@ import os
 
 # TODO: json config file for targets
 
-target_dict = {
-    'target0': {
-        'address': '192.168.0.175',
-        'user': 'fostrb',
-        'displays': [':0']
-    }
-}
-
-targets = {'192.168.0.175': [':0']}
-user = 'fostrb'
 
 
-class ScreencapMan(SServ):
+class ScrapMan(SService):
     """demo service"""
     def __init__(self):
-        super(ScreencapMan, self).__init__()
+        super(ScrapMan, self).__init__()
         # heartbeat (int): The number of seconds between screen captures.
         self.heartbeat = 5
 
@@ -31,7 +21,6 @@ class ScreencapMan(SServ):
         # min_sleep: Minimum number of seconds to sleep between ticks. (Inverse of maximum capture frequency)
         self.min_sleep = 2
 
-        self.targets = targets
         self.capturing = False
         print("ScreencapMan Init")
 
@@ -53,21 +42,11 @@ class ScreencapMan(SServ):
         if dryrun:
             print("Capturing all at " + str(time.time()))
             return
-        for address, displays in self.targets.items():
-            self.capture_single_target(address, displays)
+        #for address, displays in self.targets.items():
+            #self.capture_single_target(address, displays)
 
     def capture_single_target(self, target, displays):
-        try:
-            if target in self.targets.keys():
-                for display in displays:
-                    ret = os.system('ssh ' + user + '@' + target + ' "xwd -out screenshot.xwd -root -display "' + display)
-                    if not ret == 0:
-                        return "FAILURE"
-            else:
-                return "Target not in list"
-        except:
-            return "Capture failure"
-        return "Capture success"
+        print("capturing " + str(target) + str(displays))
 
     # exposed commands --------------------------------------------------------|
     #                                                                          |

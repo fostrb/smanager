@@ -1,1 +1,1 @@
-from services.scrapman import ScreencapMan
+from .scrapman import ScrapMan
