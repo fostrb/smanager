@@ -37,7 +37,7 @@ class SMProtocol(LineReceiver):
         for name in self.service_manager.services.keys():
             self.send_string('-' + name)
         self.send_string("-" * 50)
-    
+
     def connectionLost(self, reason=None):
         print("Disconnected: " + str(self.transport.client[0]))
 
@@ -93,50 +93,91 @@ class SManager(SService):
         for k, v in self.services.items():
             v.disconnect_notification(address)
     
-    def cmd_help(self, target=None):
+    def cmd_help(self, simple_output=None, target=None):
         """display help message"""
-        returnstring = "-"*50+'\n'
-        returnstring += self.__class__.__name__+'\n'
-        returnstring += "-" * 50 + '\n'
+        print("HELP COMMAND")
+        # TODO: Simple service help
+        returnstring = ''
+        simple = False
+        if simple_output:
+            if simple_output == '-s':
+                simple = True
+            else:
+                target = simple_output
+        if not simple:
+            returnstring = "-" * 50 + '\n'
+            returnstring += self.__class__.__name__+'\n'
+            returnstring += "-" * 50 + '\n'
         if target:
             if target.lower() in self.services.keys():
                 return self.services[target.lower()].cmd_help()
 
         # toplevel commands
-        returnstring += 'Toplevel exposed commands:\n'
+        if not simple:
+            returnstring += 'Toplevel exposed commands:\n'
+        else:
+            returnstring += 'TOP:'
         for s, serv in self.services.items():
             for cmd in serv.toplv_cmds:
-                returnstring += '\t'+cmd
-                boundmeth = serv.cmds[cmd]
-                if boundmeth.__doc__ is not None:
-                    returnstring += ': ' + boundmeth.__doc__.strip() + '\n'
+                if not simple:
+                    returnstring += '\t'+cmd
                 else:
-                    returnstring += '\n'
-        returnstring += '-'*50 + '\n'
+                    returnstring += ' ' + cmd
+                boundmeth = serv.cmds[cmd]
+                if not simple:
+                    if boundmeth.__doc__ is not None:
+                        returnstring += ': ' + boundmeth.__doc__.strip() + '\n'
+                    else:
+                        returnstring += '\n'
+        if simple:
+            returnstring += '\n'
+        if not simple:
+            returnstring += '-'*50 + '\n'
 
-        returnstring += "Services:\n"
+        if not simple:
+            returnstring += "Services:\n"
+        else:
+            returnstring += "SERVICES:"
         for s, serv in self.services.items():
-            if serv.__doc__ is not None:
-                returnstring += '\t' + s + ': ' + serv.__doc__.strip()+'\n'
+            if not simple:
+                if serv.__doc__ is not None:
+                    returnstring += '\t' + s + ': ' + serv.__doc__.strip()+'\n'
+                else:
+                    returnstring += '\t' + s + '\n'
             else:
-                returnstring += '\t' + s + '\n'
-        returnstring += "Commands:\n"
+                returnstring += ' ' + s
+        if simple:
+            returnstring += '\n'
+
+        if not simple:
+            returnstring += "Commands:\n"
+        else:
+            returnstring += "COMMANDS:"
         for cmd, boundmeth in self.cmds.items():
             if not boundmeth.__name__.startswith('toplevel_cmd_'):
-                if boundmeth.__doc__ is not None:
-                    returnstring += ('\t' + cmd + ": " + boundmeth.__doc__.strip() + '\n')
+                if not simple:
+                    if boundmeth.__doc__ is not None:
+                        returnstring += ('\t' + cmd + ": " + boundmeth.__doc__.strip() + '\n')
+                    else:
+                        returnstring += '\t'+cmd+'\n'
                 else:
-                    returnstring += ('\t'+cmd+'\n')
+                    returnstring += (' '+cmd)
         return returnstring
-    
-    def cmd_restart(self):
+
+    def cmd_restart(self, service_name=None):
         """restart services"""
-        for k, v in self.services.items():
-            v.cleanup()
-        for k, v in services.__dict__.items():
-            if isinstance(v, type):
-                if issubclass(v, SService):
-                    self.services[v.__name__.lower()] = v()
+        # TODO: Since services modularized, restart needs to be restructured
+        if service_name is None:
+            for k, v in self.services.items():
+                v.cleanup()
+            for k, v in services.__dict__.items():
+                if isinstance(v, type):
+                    if issubclass(v, SService):
+                        self.services[v.__name__.lower()] = v()
+        else:
+            if service_name in self.services.keys():
+                print(services.__dict__[service_name])
+                self.services[service_name] = services.__dict__[service_name]()
 
     def cmd_kill(self):
         """kill server"""

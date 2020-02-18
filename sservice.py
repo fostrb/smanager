@@ -49,12 +49,23 @@ class SService(object):
                 m = getattr(self, method)
                 self.cmds[command] = m
 
-    def cmd_help(self):
+    def cmd_help(self, simple=None, arg=None):
+        # TODO Simple service help
         """Print the help dialogue for this service"""
-        returnstring = "-"*40 + '\n'
-        returnstring += self.__class__.__name__ + '\n'
-        returnstring += '-'*40+'\n'
+        returnstring = ''
+        simple = False
+        if simple:
+            if simple == '-s':
+                simple = True
+            else:
+                arg = simple
+        if not simple:
+            returnstring += "-"*40 + '\n'
+            returnstring += self.__class__.__name__ + '\n'
+            returnstring += self.__class__.__doc__ + '\n'
+            returnstring += '-'*40+'\n'
         for cmd, boundmeth in self.cmds.items():
+
             if boundmeth.__doc__ is not None:
                 returnstring += (cmd + ": " + boundmeth.__doc__ + '\n')
             else:

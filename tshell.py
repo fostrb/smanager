@@ -57,7 +57,8 @@ class Console(basic.LineReceiver):
 def send_command(cmd):
     s = socket.socket()
     s.connect((host, port))
-    s.send(bytes(str(cmd + '\n'), 'utf-8'))
+    cmd = bytes(str(cmd + '\n').encode('utf-8'))
+    s.send(cmd)
 
 
 def main():
