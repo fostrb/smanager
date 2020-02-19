@@ -4,9 +4,6 @@ import json
 import time
 import os
 
-# TODO: json config file for targets
-
-
 
 class ScrapMan(SService):
     """demo service"""
@@ -41,12 +38,11 @@ class ScrapMan(SService):
     def capture_all(self, dryrun=False):
         if dryrun:
             print("Capturing all at " + str(time.time()))
-            return
-        #for address, displays in self.targets.items():
-            #self.capture_single_target(address, displays)
+            return [0, "Capturing all"]
 
     def capture_single_target(self, target, displays):
         print("capturing " + str(target) + str(displays))
+        return [0, "Capturing " + str(target, displays)]
 
     # exposed commands --------------------------------------------------------|
     #                                                                          |
@@ -54,14 +50,14 @@ class ScrapMan(SService):
         """Change the heartbeat of the screen capture service
             :param freq: Seconds to sleep between ticks."""
         self.heartbeat = max([int(freq), self.min_sleep])
-        return "Heartbeat: " + str(self.heartbeat)
+        return [0, "Heartbeat: " + str(self.heartbeat)]
 
     def toplevel_cmd_scrapfreq(self, freq):
         """Change the heartbeat of the screen capture service
             :param freq: Ticks per minute."""
         f = int(freq)
         self.heartbeat = max([int(60/f), self.min_sleep])
-        return "Heartbeat: " + str(self.heartbeat)
+        return [0, "Heartbeat: " + str(self.heartbeat)]
 
     def toplevel_cmd_captest(self):
         """Take one screenshot the test target"""
@@ -74,24 +70,27 @@ class ScrapMan(SService):
             t = threading.Thread(target=self.begin_capture)
             t.daemon = True
             t.start()
-            return "Started capture loop thread"
+            return [0, "Started capture loop thread"]
         else:
-            return "Service is already capturing"
+            return [1, "Service is already capturing"]
 
     def toplevel_cmd_stopcap(self):
         """Stop the capture loop"""
-        self.capturing = False
-        return "Capture stopped"
+        if self.capturing:
+            self.capturing = False
+            return [0, "Capture stopped."]
+        else:
+            return [1, "Not currently capturing."]
 
     def cmd_get_heartbeat(self):
         """Get the current heartbeat of the screencap service
             Reported as an integer, i (1 tick/60s = '60')"""
-        return self.heartbeat
+        return [self.heartbeat, "Heartbeat: 1 tick per " + str(self.heartbeat) + ' s']
 
     def cmd_get_freq(self):
         """Get the current frequency of the screepcap service
             Reported as an integer, i (1 tick/60s = '1')"""
-        return int(60/self.heartbeat)
+        return [int(60/self.heartbeat), "Frequency: " + str(int(60/self.heartbeat)) + ' ticks per minute']
     #                                                                          |
     # exposed commands --------------------------------------------------------|
 

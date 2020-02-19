@@ -49,28 +49,26 @@ class SService(object):
                 m = getattr(self, method)
                 self.cmds[command] = m
 
-    def cmd_help(self, simple=None, arg=None):
+    def cmd_help(self, arg=None):
         # TODO Simple service help
         """Print the help dialogue for this service"""
-        returnstring = ''
-        simple = False
-        if simple:
-            if simple == '-s':
-                simple = True
-            else:
-                arg = simple
-        if not simple:
-            returnstring += "-"*40 + '\n'
-            returnstring += self.__class__.__name__ + '\n'
-            returnstring += self.__class__.__doc__ + '\n'
-            returnstring += '-'*40+'\n'
-        for cmd, boundmeth in self.cmds.items():
 
+        robot_string = ''
+        human_string = ''
+
+        human_string += "-"*40 + '\n'
+        human_string += self.__class__.__name__ + '\n'
+        human_string += self.__class__.__doc__ + '\n'
+        human_string += '-'*40+'\n'
+
+        robot_string += 'COMMANDS:'
+        for cmd, boundmeth in self.cmds.items():
+            robot_string += ' ' + cmd
             if boundmeth.__doc__ is not None:
-                returnstring += (cmd + ": " + boundmeth.__doc__ + '\n')
+                human_string += (cmd + ": " + boundmeth.__doc__ + '\n')
             else:
-                returnstring += (cmd + '\n')
-        return returnstring
+                human_string += (cmd + '\n')
+        return [robot_string, human_string]
 
     def restart(self):
         """Overload method to return a new instance of self with contextual data of running stuff"""

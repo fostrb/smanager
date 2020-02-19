@@ -10,17 +10,26 @@ python smanager.py
 ```
 Connect to SManager over TCP via telnet or provided tshell.py to interact and issue commands.
 
+Once connected, issuing the "human" command will change a session to 'human readable output' mode, instead of default 'robot' output.
+
+This can be changed again by issuing "robot". 
+
 
     >telnet <smanager_address> 10000
     Trying 127.0.0.1...
     Connected to localhost.
     Escape character is '^]'.
-    **************************************************
-    Service Manager
-    **************************************************
-    Available Services:
-    -systemstatus
+    >human
+    >help
     --------------------------------------------------
+    SManager
+    --------------------------------------------------
+    Toplevel exposed commands:
+        captest: Take one screenshot the test target
+        capture_at: Change the heartbeat of the screen capture service
+                :param freq: Seconds to sleep between ticks.
+    ...
+
 
 # Services
 
@@ -103,9 +112,9 @@ Making a connection to SManager and issuing a command via a script or other syst
 echo -n 'systemstatus uptime' | nc <smanager_host> 10000
 ```
 
-The help command optionally accepts the '-s' switch, simplifying output for parsing by code with knowledge of the system.
+SManager by default expects to be interfacing with robots. As such, will output robot-friendly text:
 
-    >help -s
+    >help
     TOP: captest capture_at scrapfreq startcap stopcap hostname
     SERVICES: scrapman systemstatus
     COMMANDS: help kill restart
@@ -120,7 +129,7 @@ logfile = '/tmp/useful_log.log'
 
 try:
     # Connect to smanager and ask for simplified help summary
-    help_output = smanager_cmd(address, port, 'help -s')
+    help_output = smanager_cmd(address, port, 'help')
 except:
     with open(logfile) as fp:
         fp.write("Couldn't connect to smanager at " + str(time.time()))
