@@ -1,0 +1,9 @@
+{
+  "keydir": "keys/",
+  "client_key": "client.key",
+  "client_cert": "client.pem",
+  "server_key": "server.key",
+  "server_cert": "server.crt",
+  "logfile": "/tmp/smanager.log",
+  "default_port": 10000
+}

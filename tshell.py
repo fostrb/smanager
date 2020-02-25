@@ -2,12 +2,30 @@ from twisted.internet import reactor, protocol, stdio
 from twisted.protocols import basic
 from sys import stdout
 import socket
+from OpenSSL import SSL
+from twisted.internet import ssl as tssl
+import ssl
+import os
+import json
 
 import argparse
 
 host = 'localhost'
-port = 10000
 delimiter = '\n'
+
+# load configuration
+dirname = os.path.dirname(__file__)
+configfile = os.path.join(dirname, 'config.json')
+with open(configfile) as fp:
+    config = json.load(fp)
+if not str(config['keydir']).startswith('/'):
+    # relative path to keys directory
+    config['keydir'] = os.path.join(dirname, config['keydir'])
+KEYS_LOCATION = config['keydir']
+client_key = os.path.join(KEYS_LOCATION, config['client_key'])
+client_cert = os.path.join(KEYS_LOCATION, config['client_cert'])
+
+PORT = config['default_port']
 
 
 class ConsoleClient(protocol.Protocol):
@@ -21,7 +39,7 @@ class ConsoleClient(protocol.Protocol):
 
 class ConsoleClientFactory(protocol.ClientFactory):
     def startedConnecting(self, connector):
-        print("Connecting to " + str(host) + ':' + str(port) + '...')
+        print("Connecting to " + str(host) + ':' + str(PORT) + '...')
 
     def buildProtocol(self, addr):
         print("Connected")
@@ -31,6 +49,15 @@ class ConsoleClientFactory(protocol.ClientFactory):
 
     def clientConnectionFailed(self, connector, reason):
         print("Failed: ", reason)
+
+
+class CtxFactory(tssl.ClientContextFactory):
+    def getContext(self):
+        self.method = SSL.SSLv23_METHOD
+        ctx = tssl.ClientContextFactory.getContext(self)
+        ctx.use_certificate_file(KEYS_LOCATION + '/client.pem')
+        ctx.use_privatekey_file(KEYS_LOCATION + '/client.key')
+        return ctx
 
 
 class Console(basic.LineReceiver):
@@ -54,17 +81,24 @@ class Console(basic.LineReceiver):
         exit()
 
 
-def send_command(cmd):
-    s = socket.socket()
-    s.connect((host, port))
-    cmd = bytes(str(cmd + '\n').encode('utf-8'))
-    s.send(cmd)
+def send_command(cmd, hostname=host, portnum=PORT):
+    # Connect with SSL auth and send a single command
+    context = ssl.SSLContext(SSL.SSLv23_METHOD)
+    context.load_cert_chain(keyfile=client_key, certfile=client_cert)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
+        with context.wrap_socket(sock, server_hostname=host) as ssock:
+            ssock.connect((hostname, portnum))
+            ssock.write(bytes(cmd, 'utf-8'))
+            rmsg = ssock.read().decode('utf-8')
+            #print(rmsg)
+            return rmsg
 
 
 def main():
     factory = ConsoleClientFactory()
     stdio.StandardIO(Console(factory))
-    reactor.connectTCP(host, port, factory)
+    reactor.connectSSL(host, PORT, factory, CtxFactory())
     reactor.run()
 
 
@@ -77,7 +111,7 @@ if __name__ == '__main__':
         print('address: ' + str(args.address))
         if ':' in str(args.address):
             host, port_str = str(args.address).split(':')
-            port = int(port_str)
+            PORT = int(port_str)
         else:
             host = args.address
     if args.command:

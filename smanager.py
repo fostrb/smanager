@@ -1,12 +1,29 @@
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
-from twisted.internet import reactor
+import os
+from twisted.internet import ssl, reactor
+
+from OpenSSL import SSL
+import json
 
 from sservice import SService
 import services
 
-LOGFILE = "/tmp/smanager.log"
+# load configuration
+dirname = os.path.dirname(__file__)
+configfile = os.path.join(dirname, 'config.json')
+with open(configfile) as fp:
+    config = json.load(fp)
+if not str(config['keydir']).startswith('/'):
+    # relative path to keys directory
+    config['keydir'] = os.path.join(dirname, config['keydir'])
+KEYS_LOCATION = config['keydir']
+server_key = os.path.join(config['keydir'], config['server_key'])
+server_cert = os.path.join(config['keydir'], config['server_cert'])
+
+LOGFILE = config['logfile']
+DEFAULT_PORT = config['default_port']
 
 
 class SMProtocol(LineReceiver):
@@ -16,12 +33,12 @@ class SMProtocol(LineReceiver):
         are addressing currently.
     """
 
-    def rawDataReceived(self, data):
-        print("Received unprecedented raw data:", data)
-
     def __init__(self, service_manager):
         self.service_manager = service_manager
         self.robot_or_human = 'robot'
+
+    def rawDataReceived(self, data):
+        print("Received unprecedented raw data:", data)
 
     def dataReceived(self, data):
         self.lineReceived(data)
@@ -30,19 +47,8 @@ class SMProtocol(LineReceiver):
         self.sendLine(bytes(data, 'utf-8'))
 
     def connectionMade(self):
+        # Initial connection always defaults to 'robot'
         print("connected: " + str(self.transport.client[0]))
-
-        # TODO: always connect as robot, format connection message so it's useful to both humans and robots
-
-        '''
-        self.send_string("*" * 50)
-        self.send_string("Service Manager")
-        self.send_string("*" * 50)
-        self.send_string("Available Services:")
-        for name in self.service_manager.services.keys():
-            self.send_string('-' + name)
-        self.send_string("-" * 50)
-        '''
 
     def connectionLost(self, reason=None):
         print("Disconnected: " + str(self.transport.client[0]))
@@ -115,8 +121,8 @@ class SManager(SService):
     because service manager is a service, we could (but probably shouldn't) nest service managers.
     """
     def __init__(self):
-        super(SManager, self).__init__()
         # log.startLogging(open(LOGFILE, "a+"))
+        super(SManager, self).__init__()
 
         """
         sessions dict maps each session to a session type; 'human' or 'robot'.
@@ -190,7 +196,6 @@ class SManager(SService):
                     human_string += ('\t' + cmd + ": " + boundmeth.__doc__.strip() + '\n')
                 else:
                     human_string += '\t'+cmd+'\n'
-
                 robot_string += (' '+cmd)
         return [robot_string, human_string]
 
@@ -209,9 +214,6 @@ class SManager(SService):
                 print(services.__dict__[service_name])
                 self.services[service_name] = services.__dict__[service_name]()
 
-    def cmd_human(self):
-        """Switch mode to human console"""
-
     def cmd_kill(self):
         """kill server"""
         for sname, service in self.services.items():
@@ -219,6 +221,21 @@ class SManager(SService):
         reactor.stop()
 
 
+def verify_callback(connection, x509, errnum, errdepth, ok):
+        if not ok:
+            print('Invalid cert: ', x509.get_subject())
+            return False
+        else:
+            print("Certs are fine")
+        return True
+
+
 if __name__ == '__main__':
-    reactor.listenTCP(10000, SMFactory())
+    factory = SMFactory()
+    myContextFactory = ssl.DefaultOpenSSLContextFactory(server_key, server_cert)
+    ctx = myContextFactory.getContext()
+
+    ctx.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback)
+    ctx.load_verify_locations(KEYS_LOCATION+ '/ca.pem')
+    reactor.listenSSL(DEFAULT_PORT, factory, myContextFactory)
     reactor.run()

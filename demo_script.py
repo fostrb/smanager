@@ -1,10 +1,12 @@
 import os
 import subprocess
+import tshell
 
 from subprocess import Popen, PIPE
 
 address = 'localhost'
 port = 10000
+
 
 def smanager_cmd(address, port, cmd):
     '''
@@ -15,7 +17,8 @@ def smanager_cmd(address, port, cmd):
     output = p2.communicate()[0]
     cmdoutput = output.decode('utf-8')
     '''
-    cmdoutput = os.popen('echo -n ' + cmd + ' | nc -q 1 ' + address + ' ' + str(port)).read()
+    #cmdoutput = os.popen('echo -n ' + cmd + ' | nc -q 1 ' + address + ' ' + str(port)).read()
+    cmdoutput = tshell.send_command(cmd)
     return cmdoutput
 
 

@@ -7,6 +7,7 @@ class SService(object):
         self.cmds = {}
         self.toplv_cmds = []
         self.init_cmds()
+        print(str(self.__class__.__name__) + " initialized.")
 
     def parse_command(self, cmd_string):
         """Accepts a string, tokenizes, and matches to a command, passing args.

@@ -19,7 +19,6 @@ class ScrapMan(SService):
         self.min_sleep = 2
 
         self.capturing = False
-        print("ScreencapMan Init")
 
     def begin_capture(self):
         if not self.capturing:
