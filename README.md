@@ -17,6 +17,8 @@ This can be changed again by issuing "robot".
 
     >openssl s_client -connect localhost:10000 -key keys/client.key -cert keys/client.pem
     CONNECTED(00000003)
+    ...
+    ...
     >human
     >help
     --------------------------------------------------
