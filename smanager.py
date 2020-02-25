@@ -222,12 +222,12 @@ class SManager(SService):
 
 
 def verify_callback(connection, x509, errnum, errdepth, ok):
-        if not ok:
-            print('Invalid cert: ', x509.get_subject())
-            return False
-        else:
-            print("Certs are fine")
-        return True
+    if not ok:
+        print('Invalid cert: ', x509.get_subject())
+        return False
+    else:
+        print("Certs are fine")
+    return True
 
 
 if __name__ == '__main__':
@@ -236,6 +236,6 @@ if __name__ == '__main__':
     ctx = myContextFactory.getContext()
 
     ctx.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback)
-    ctx.load_verify_locations(KEYS_LOCATION+ '/ca.pem')
+    ctx.load_verify_locations(KEYS_LOCATION + '/ca.pem')
     reactor.listenSSL(DEFAULT_PORT, factory, myContextFactory)
     reactor.run()
