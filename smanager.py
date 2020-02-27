@@ -21,6 +21,7 @@ if not str(config['keydir']).startswith('/'):
 KEYS_LOCATION = config['keydir']
 server_key = os.path.join(config['keydir'], config['server_key'])
 server_cert = os.path.join(config['keydir'], config['server_cert'])
+start_services = config['services']
 
 LOGFILE = config['logfile']
 DEFAULT_PORT = config['default_port']
@@ -54,7 +55,6 @@ class SMProtocol(LineReceiver):
         print("Disconnected: " + str(self.transport.client[0]))
 
     def lineReceived(self, line):
-
         # change_id_for_one: If using 'humanrun' or 'robotrun', this value becomes previous identifier,
         #   then is used to switch back after command is run
         change_id_for_one = False
@@ -110,7 +110,7 @@ class SMProtocol(LineReceiver):
 class SMFactory(Factory):
     def __init__(self):
         self.service_manager = SManager()
-    
+
     def buildProtocol(self, addr):
         return SMProtocol(self.service_manager)
 
@@ -135,7 +135,8 @@ class SManager(SService):
         for k, v in services.__dict__.items():
             if isinstance(v, type):
                 if issubclass(v, SService):
-                    self.services[v.__name__.lower()] = v()
+                    if v.__name__.lower() in start_services:
+                        self.services[v.__name__.lower()] = v()
 
         # Raising level of service toplv_cmds to Smanager.
         for sname, service in self.services.items():
