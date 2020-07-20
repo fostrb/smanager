@@ -26,6 +26,8 @@ start_services = config['services']
 LOGFILE = config['logfile']
 DEFAULT_PORT = config['default_port']
 
+enable_ssl = config['enable_ssl']
+
 
 class SMProtocol(LineReceiver):
     """
@@ -233,10 +235,13 @@ def verify_callback(connection, x509, errnum, errdepth, ok):
 
 if __name__ == '__main__':
     factory = SMFactory()
-    myContextFactory = ssl.DefaultOpenSSLContextFactory(server_key, server_cert)
-    ctx = myContextFactory.getContext()
+    if enable_ssl == 1:
+        myContextFactory = ssl.DefaultOpenSSLContextFactory(server_key, server_cert)
+        ctx = myContextFactory.getContext()
 
-    ctx.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback)
-    ctx.load_verify_locations(KEYS_LOCATION + '/ca.pem')
-    reactor.listenSSL(DEFAULT_PORT, factory, myContextFactory)
+        ctx.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback)
+        ctx.load_verify_locations(KEYS_LOCATION + '/ca.pem')
+        reactor.listenSSL(DEFAULT_PORT, factory, myContextFactory)
+    else:
+        reactor.listenTCP(10000, SMFactory())
     reactor.run()

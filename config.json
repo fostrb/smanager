@@ -6,5 +6,6 @@
   "server_cert": "server.crt",
   "logfile": "/tmp/smanager.log",
   "default_port": 10000,
-  "services": "systemstatus"
+  "services": "systemstatus",
+  "enable_ssl": 0
 }

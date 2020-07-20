@@ -27,6 +27,8 @@ client_cert = os.path.join(KEYS_LOCATION, config['client_cert'])
 
 PORT = config['default_port']
 
+enable_ssl = config['enable_ssl']
+
 
 class ConsoleClient(protocol.Protocol):
     def dataReceived(self, data):
@@ -82,23 +84,37 @@ class Console(basic.LineReceiver):
 
 
 def send_command(cmd, hostname=host, portnum=PORT):
-    # Connect with SSL auth and send a single command
-    context = ssl.SSLContext(SSL.SSLv23_METHOD)
-    context.load_cert_chain(keyfile=client_key, certfile=client_cert)
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
-        with context.wrap_socket(sock, server_hostname=host) as ssock:
-            ssock.connect((hostname, portnum))
-            ssock.write(bytes(cmd, 'utf-8'))
-            rmsg = ssock.read().decode('utf-8')
-            #print(rmsg)
+    if enable_ssl == 1:
+        # Connect with SSL auth and send a single command
+        context = ssl.SSLContext(SSL.SSLv23_METHOD)
+        context.load_cert_chain(keyfile=client_key, certfile=client_cert)
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
+            with context.wrap_socket(sock, server_hostname=host) as ssock:
+                ssock.connect((hostname, portnum))
+                ssock.write(bytes(cmd, 'utf-8'))
+                rmsg = ssock.read().decode('utf-8')
+                #print(rmsg)
+                return rmsg
+    else:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
+            #with context.wrap_socket(sock, server_hostname=host) as ssock:
+            sock.connect((hostname, portnum))
+            sock.write(bytes(cmd, 'utf-8'))
+            rmsg = sock.read().decode("utf-8")
             return rmsg
+
 
 
 def main():
     factory = ConsoleClientFactory()
     stdio.StandardIO(Console(factory))
-    reactor.connectSSL(host, PORT, factory, CtxFactory())
+
+    if enable_ssl == 1:
+        reactor.connectSSL(host, PORT, factory, CtxFactory())
+    else:
+        reactor.connectTCP(host, PORT, factory)
     reactor.run()
 
 
